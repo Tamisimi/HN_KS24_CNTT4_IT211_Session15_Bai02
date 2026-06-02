@@ -1,8 +1,9 @@
-package org.example.session15;
+package org.example.session15.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -17,23 +18,28 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .authorizeHttpRequests(authorize -> authorize
-                        // 1. Công khai - Không cần đăng nhập
-                        .requestMatchers("/").permitAll()
-                        .requestMatchers("/public/**").permitAll()
+            // Vô hiệu hóa CSRF cho REST API (an toàn khi dùng token)
+            .csrf(csrf -> csrf.disable())
 
-                        // 2. Chỉ ADMIN mới được vào
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
+            // Cấu hình phân quyền
+            .authorizeHttpRequests(authorize -> authorize
+                // Công khai: Đăng ký và Đăng nhập
+                .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
 
-                        // 3. Các request còn lại phải đăng nhập
-                        .anyRequest().authenticated()
-                )
-                .formLogin(form -> form
-                        .permitAll()           // Cho phép tất cả truy cập trang login
-                )
-                .logout(logout -> logout
-                        .permitAll()
-                );
+                // Tất cả các API khác phải xác thực
+                .requestMatchers("/api/**").authenticated()
+
+                // Các request khác (nếu có) có thể điều chỉnh sau
+                .anyRequest().authenticated()
+            )
+
+            // Tắt formLogin vì đây là REST API (không dùng trang web form)
+            .formLogin(form -> form.disable())
+
+            // Cấu hình stateless (không dùng session)
+            .sessionManagement(session -> 
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            );
 
         return http.build();
     }
