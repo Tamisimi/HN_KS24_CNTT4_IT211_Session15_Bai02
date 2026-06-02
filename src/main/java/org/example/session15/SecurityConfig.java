@@ -18,7 +18,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            // Vô hiệu hóa CSRF cho REST API (an toàn khi dùng token)
+            // Vô hiệu hóa CSRF cho REST API
             .csrf(csrf -> csrf.disable())
 
             // Cấu hình phân quyền
@@ -44,7 +44,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // ================== In-Memory Users cho Testing ==================
+    //In-Memory Users cho Testing 
     @Bean
     public UserDetailsService userDetailsService() {
         UserDetails user = User.builder()
